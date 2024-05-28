@@ -9,9 +9,10 @@ use App\Models\Operator;
 use App\Models\Priority;
 use App\Models\Status;
 use App\Models\Ticket;
+use Illuminate\Support\Facades\Storage; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-
+use illuminate\Support\Facades\Auth;
 class TicketController extends Controller
 {
     /**
@@ -19,7 +20,9 @@ class TicketController extends Controller
      */
     public function index()
     {
-        // TODO
+        $ticket = Ticket::where('status_id', Auth::id())->get();
+
+        return view('admin.tickets.index', compact('ticket'));
     }
 
     /**
@@ -83,7 +86,17 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        // TODO
+        if ($ticket->status_id === Auth::id()) {
+            if ($ticket->img) {
+                Storage::delete($ticket);
+            }
+
+            $ticket->delete();
+
+            return to_route('admin.tickets.index')->with('message', 'Ticket deleted successfully 👍');
+        }
+
+        abort(403, 'You cannot delete this ticket!');
     }
 
 }
